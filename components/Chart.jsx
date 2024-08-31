@@ -97,7 +97,6 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
     });
 
     const totalSum = updatedSkillsData.reduce((acc, row) => acc + row.total, 0);
-    console.log("Total Sum:", totalSum);
 
     updatedSkillsData.forEach((row) => {
       row.percent =
