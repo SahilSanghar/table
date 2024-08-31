@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 ChartJS.register(
   CategoryScale,
@@ -123,10 +124,10 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
     labels: skillsData.map((row) => row.skill),
     datasets: [
       {
-        label: "Percentage",
+        // label: "Percentage",
         data: skillsData.map((row) => row.percent),
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        borderColor: "rgba(75, 192, 192, 1)",
+        backgroundColor: "rgba(54, 162, 235)",
+        borderColor: "rgba(54, 162, 235, 1)", 
         borderWidth: 1,
       },
     ],
@@ -136,12 +137,18 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
     responsive: true,
     plugins: {
       legend: {
-        position: "top",
+        display: false, // Disable the legend popup
       },
-      title: {
-        display: true,
-        text: "Skills Percentage",
+      // Custom plugin to render percentage above bars
+      datalabels: {
+        anchor: 'end',
+        align: 'end',
+        formatter: (value) => `${value}%`,
+        color: 'black',
       },
+      Tooltip: {
+        enabled: false,
+      }
     },
     scales: {
       y: {
