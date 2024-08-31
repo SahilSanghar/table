@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
 
 import {
@@ -21,37 +21,34 @@ ChartJS.register(
   Legend
 );
 
-const Chart = () => {
-  const [skillsData, setSkillsData] = useState([
-    {
-      skill: "Running",
-      values: ["", "", "", ""],
+const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
+  const [skillsData, setSkillsData] = useState(initialSkillsData);
+
+  const handleSkillNameChange = (index, newName) => {
+    const updatedSkillsData = [...skillsData];
+    updatedSkillsData[index].skill = newName;
+    setSkillsData(updatedSkillsData);
+  };
+
+  const addSkill = (skillName) => {
+    const newSkill = {
+      skill: skillName,
+      values: Array(skillsData.length + 1).fill(""),
       total: 0,
       percent: 0,
-      normalized: 0,
-    },
-    {
-      skill: "Jumping",
-      values: ["", "", "", ""],
-      total: 0,
-      percent: 0,
-      normalized: 0,
-    },
-    {
-      skill: "Hitting",
-      values: ["", "", "", ""],
-      total: 0,
-      percent: 0,
-      normalized: 0,
-    },
-    {
-      skill: "Dancing",
-      values: ["", "", "", ""],
-      total: 0,
-      percent: 0,
-      normalized: 0,
-    },
-  ]);
+      normalize: 0,
+    };
+
+    const updatedSkillsData = [...skillsData, newSkill];
+
+    updatedSkillsData.forEach((row, index) => {
+      if (index < updatedSkillsData.length - 1) {
+        row.values.push("");
+      }
+    });
+
+    setSkillsData(updatedSkillsData);
+  };
 
   const roundToTwoDecimals = (num) => {
     return Math.ceil(num * 100) / 100;
@@ -100,6 +97,8 @@ const Chart = () => {
     });
 
     const totalSum = updatedSkillsData.reduce((acc, row) => acc + row.total, 0);
+    console.log("Total Sum:", totalSum);
+
     updatedSkillsData.forEach((row) => {
       row.percent =
         totalSum > 0
@@ -116,10 +115,9 @@ const Chart = () => {
   const highestPercent = Math.max(...skillsData.map((row) => row.percent), 0);
   const totalSum = skillsData.reduce((acc, row) => acc + row.total, 0);
   const totalPercentSum = skillsData.reduce((acc, row) => acc + row.percent, 0);
-  const totalNormalizedSum = skillsData.reduce(
-    (acc, row) => acc + row.normalized,
-    0
-  );
+  const totalNormalizedSum = skillsData.reduce((acc, row) => {
+    return acc + (isNaN(row.normalized) ? 0 : row.normalized);
+  }, 0);
 
   // Chart data
   const chartData = {
@@ -160,13 +158,28 @@ const Chart = () => {
 
   return (
     <div className="container mx-auto mt-8 p-4">
+      <div className="mb-4">
+        <button
+          onClick={() => addSkill(`NewCol`)}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Add +
+        </button>
+      </div>
       <table className="min-w-full bg-white mb-8">
         <thead>
           <tr>
-            <th className="py-2 px-4 border">Skills</th>
+            <th className="py-2 px-4 border">{firstColumnLabel}</th>
             {skillsData.map((row, colIndex) => (
               <th key={colIndex} className="py-2 px-4 border">
-                {row.skill}
+                <input
+                  type="text"
+                  value={row.skill}
+                  onChange={(e) =>
+                    handleSkillNameChange(colIndex, e.target.value)
+                  }
+                  className="w-full text-center"
+                />
               </th>
             ))}
             <th className="py-2 px-4 border">Total</th>
@@ -245,7 +258,7 @@ const Chart = () => {
               {totalSum.toFixed(2)}
             </td>
             <td className="py-2 px-4 border font-bold">
-              {totalPercentSum.toFixed(2)}%
+              {totalPercentSum.toFixed(1)}%
             </td>
             <td className="py-2 px-4 border font-bold">
               {totalNormalizedSum.toFixed(2)}
