@@ -11,7 +11,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import ChartDataLabels from 'chartjs-plugin-datalabels';
+import ChartDataLabels from "chartjs-plugin-datalabels";
 
 ChartJS.register(
   CategoryScale,
@@ -19,7 +19,8 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ChartDataLabels
 );
 
 const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
@@ -126,8 +127,8 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
       {
         // label: "Percentage",
         data: skillsData.map((row) => row.percent),
-        backgroundColor: "rgba(54, 162, 235)",
-        borderColor: "rgba(54, 162, 235, 1)", 
+        backgroundColor: "#0277bd",
+        borderColor: "rgba(54, 162, 235, 1)",
         borderWidth: 1,
       },
     ],
@@ -139,25 +140,75 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
       legend: {
         display: false, // Disable the legend popup
       },
-      // Custom plugin to render percentage above bars
-      datalabels: {
-        anchor: 'end',
-        align: 'end',
-        formatter: (value) => `${value}%`,
-        color: 'black',
+      title: {
+        display: true,
+        text: `${firstColumnLabel} vs Weight percentage`,
+        font: {
+          size: 18,
+        },
+        padding: {
+          top: 20,
+          bottom: 30,
+        },
       },
-      Tooltip: {
-        enabled: false,
-      }
+      datalabels: {
+        display: true,
+        color: "white",
+        align: "start",
+        anchor: "start",
+        formatter: (value) => (value > 0 ? `${value}%` : ""),
+        font: {
+          weight: "bold",
+          size: 14,
+        },
+      },
+      tooltip: {
+        enabled: true, // Enable tooltips
+        callbacks: {
+          title: function (tooltipItems) {
+            // Return the skill name for the tooltip
+            return tooltipItems[0].label;
+          },
+          label: function (tooltipItem) {
+            const skillName = tooltipItem.label;
+            const percentage = tooltipItem.raw;
+            const color = tooltipItem.dataset.borderColor;
+            return [` %: ${percentage}`];
+          },
+        },
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        titleColor: "white",
+        bodyColor: "white",
+        borderColor: "white",
+        borderWidth: 1,
+      },
     },
     scales: {
+      x: {
+        title: {
+          display: true,
+          text: firstColumnLabel,
+          font: {
+            size: 16,
+          },
+          color: "#000000",
+        },
+      },
       y: {
-        beginAtZero: true,
+        title: {
+          display: true,
+          text: "Percentage",
+          font: {
+            size: 16,
+          },
+          color: "#000000",
+        },
         ticks: {
           callback: function (value) {
             return value + "%";
           },
         },
+        beginAtZero: true,
       },
     },
   };
@@ -188,6 +239,7 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
                 />
               </th>
             ))}
+
             <th className="py-2 px-4 border">Total</th>
             <th className="py-2 px-4 border">%</th>
             <th className="py-2 px-4 border">Normalized</th>

@@ -1,6 +1,7 @@
 import Chart from "@/components/Chart";
 // import Table from "@/components/Table";
-import Table from "./table";
+import CombinedTable from "@/components/CombinedTable";
+// import Table from "./table";
 
 export default function Home() {
   const skillsData1 = [
@@ -64,11 +65,18 @@ export default function Home() {
       normalized: 0,
     },
   ];
+
   return (
     <div>
       {/* <Table /> */}
       <Chart skillsData={skillsData1} firstColumnLabel="Skills" />
       <Chart skillsData={skillsData2} firstColumnLabel="Players" />
+      <CombinedTable
+        skillsData1={skillsData1}
+        skillsData2={skillsData2}
+        firstColumnLabel1="Skills"
+        firstColumnLabel2="Players"
+      />
     </div>
   );
 }
