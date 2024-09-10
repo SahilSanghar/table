@@ -1,54 +1,41 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Bar } from "react-chartjs-2";
 
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import ChartDataLabels from "chartjs-plugin-datalabels";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartDataLabels
-);
-
-const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
-  const [skillsData, setSkillsData] = useState(initialSkillsData);
+const MatrixChart = ({ firstColumnLabel, skillName, updateCombinedData }) => {
+  const [skillsData, setSkillsData] = useState([
+    {
+      skill: "Javier",
+      values: ["", "", "", ""],
+      total: 0,
+      percent: 0,
+      normalized: 0,
+    },
+    {
+      skill: "Alex",
+      values: ["", "", "", ""],
+      total: 0,
+      percent: 0,
+      normalized: 0,
+    },
+    {
+      skill: "Cody",
+      values: ["", "", "", ""],
+      total: 0,
+      percent: 0,
+      normalized: 0,
+    },
+    {
+      skill: "Dan",
+      values: ["", "", "", ""],
+      total: 0,
+      percent: 0,
+      normalized: 0,
+    },
+  ]);
 
   const handleSkillNameChange = (index, newName) => {
     const updatedSkillsData = [...skillsData];
     updatedSkillsData[index].skill = newName;
-    setSkillsData(updatedSkillsData);
-  };
-
-  const addSkill = (skillName) => {
-    const newSkill = {
-      skill: skillName,
-      values: Array(skillsData.length + 1).fill(""),
-      total: 0,
-      percent: 0,
-      normalize: 0,
-    };
-
-    const updatedSkillsData = [...skillsData, newSkill];
-
-    updatedSkillsData.forEach((row, index) => {
-      if (index < updatedSkillsData.length - 1) {
-        row.values.push("");
-      }
-    });
-
     setSkillsData(updatedSkillsData);
   };
 
@@ -112,6 +99,10 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
     setSkillsData(updatedSkillsData);
   };
 
+  useEffect(() => {
+    updateCombinedData(skillName, skillsData);
+  }, [skillsData]);
+
   // Find the highest percentage value
   const highestPercent = Math.max(...skillsData.map((row) => row.percent), 0);
   const totalSum = skillsData.reduce((acc, row) => acc + row.total, 0);
@@ -120,113 +111,22 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
     return acc + (isNaN(row.normalized) ? 0 : row.normalized);
   }, 0);
 
-  // Chart data
-  const chartData = {
-    labels: skillsData.map((row) => row.skill),
-    datasets: [
-      {
-        // label: "Percentage",
-        data: skillsData.map((row) => row.percent),
-        backgroundColor: "#0277bd",
-        borderColor: "rgba(54, 162, 235, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: true,
-        text: `${firstColumnLabel} vs Weight percentage`,
-        font: {
-          size: 18,
-        },
-      },
-      datalabels: {
-        display: true,
-        color: "black",
-        anchor: "end",
-        align: "end",
-        offset: 5,
-        formatter: (value) => (value > 0 ? `${value}%` : ""),
-        font: {
-          weight: "bold",
-          size: 14,
-        },
-      },
-      tooltip: {
-        enabled: true,
-        callbacks: {
-          title: function (tooltipItems) {
-            return tooltipItems[0].label;
-          },
-          label: function (tooltipItem) {
-            const skillName = tooltipItem.label;
-            const percentage = tooltipItem.raw;
-            const color = tooltipItem.dataset.borderColor;
-            return [` %: ${percentage}`];
-          },
-        },
-        backgroundColor: "rgba(0, 0, 0, 0.7)",
-        titleColor: "white",
-        bodyColor: "white",
-        borderColor: "white",
-        borderWidth: 1,
-      },
-    },
-    scales: {
-      x: {
-        title: {
-          display: true,
-          text: firstColumnLabel,
-          font: {
-            size: 16,
-          },
-          color: "#000000",
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: "Percentage",
-          font: {
-            size: 16,
-          },
-          color: "#000000",
-        },
-        ticks: {
-          callback: function (value) {
-            return value + "%";
-          },
-        },
-        beginAtZero: true,
-      },
-    },
-  };
-
   return (
     <div className="container mx-auto mt-8 p-4">
-      <div className="mb-4">
-        <button
-          onClick={() => addSkill(`NewCol`)}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Add +
-        </button>
-      </div>
       <table className="min-w-full bg-white mb-8">
         <thead>
+          <tr>
+            <th className="py-2 px-4 border">{"Skills"}</th>
+            <th className="py-2 px-4 border" colSpan={skillsData.length}>
+              {skillName}
+            </th>
+          </tr>
           <tr>
             <th className="py-2 px-4 border">{firstColumnLabel}</th>
             {skillsData.map((row, colIndex) => (
               <th key={colIndex} className="py-2 px-4 border">
                 <input
-                  type="text"
+                  type="number"
                   value={row.skill}
                   onChange={(e) =>
                     handleSkillNameChange(colIndex, e.target.value)
@@ -320,9 +220,8 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
           </tr>
         </tfoot>
       </table>
-      <Bar data={chartData} options={chartOptions} />
     </div>
   );
 };
 
-export default Chart;
+export default MatrixChart;

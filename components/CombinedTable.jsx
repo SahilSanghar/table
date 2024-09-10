@@ -1,203 +1,176 @@
 "use client";
 import React, { useState } from "react";
-import { handleInputChange } from "../utils/skillDataUtils";
+import { Bar } from "react-chartjs-2";
 
-const CombinedTable = ({
-  skillsData1,
-  skillsData2,
-  firstColumnLabel1,
-  firstColumnLabel2,
-}) => {
-  const [skillsData, setSkillsData] = useState(skillsData1);
-  const [playersData] = useState(skillsData2);
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
+import MatrixChart from "./MatrixChart";
+import { playerData } from "@/data/skill";
 
-  // Handle input changes
-  const onInputChange = (rowIndex, colIndex, value) => {
-    const updatedSkillsData = handleInputChange(
-      skillsData,
-      rowIndex,
-      colIndex,
-      value
-    );
-    setSkillsData(updatedSkillsData);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartDataLabels
+);
+
+const CombinedTable = ({ skillsData1 }) => {
+  const [combinedData, setCombinedData] = useState(
+    playerData.map((data) => ({
+      playerName: data.skill,
+      data: skillsData1.reduce((acc, curr) => {
+        acc[curr.skill] = [];
+        return acc;
+      }, {}),
+    }))
+  );
+
+  const updateCombinedData = (skillName, data) => {
+    let prev_data = combinedData;
+    prev_data = prev_data.map((obj) => {
+      const newValues = data.find((data) => data.skill == obj.playerName);
+      return {
+        ...obj,
+        data: {
+          ...obj.data,
+          [skillName]: newValues.percent,
+        },
+      };
+    });
+    setCombinedData(prev_data);
+    console.log(prev_data);
   };
 
-  // Combine skills and player names into a nested table structure
-  const combinedData = skillsData.map((skillRow) => ({
-    skill: skillRow.skill,
-    values: skillRow.values,
-  }));
+  // Initialize an empty result object
+  const result = {};
 
-  const matrix = combinedData.map((skillRow, skillIndex) => ({
-    skill: skillRow.skill,
-    values: playersData.map((player, playerIndex) => ({
-      playerName: player.skill, // Assuming `skill` is the property that holds the player's name in `playersData`
-      value: skillRow.values[playerIndex] || "", // This maps player data to each skill
-    })),
-  }));
+  // Iterate over each player
+  combinedData.forEach((player) => {
+    Object.keys(player.data).forEach((skill) => {
+      // If the skill doesn't exist in result, initialize it as an empty array
+      if (!result[skill]) {
+        result[skill] = [];
+      }
+      // Push the player's skill value into the respective array
+      result[skill].push(player.data[skill]);
+    });
+  });
 
-  const highestPercent = 1;
+  const SkillToColorMap = {
+    Running: "red",
+    Jumping: "yellow",
+    Hitting: "pink",
+    Dancing: "green",
+  };
 
-  //   const highestPercentCombined = Math.max(
-  //     ...matrix.flatMap((row) => row.players.map((player) => player.value)),
-  //     0
-  //   );
+  const chartData = {
+    labels: combinedData?.map((data) => data.playerName),
+    datasets: Object.keys(result).map((key) => {
+      return {
+        label: key,
+        data: result[key],
+        backgroundColor: SkillToColorMap[key],
+      };
+    }),
+  };
 
-  // Calculate totals and other metrics
-  const totalSum = matrix
-    .flatMap((row) => row.values)
-    .reduce((acc, item) => acc + (parseFloat(item.value) || 0), 0);
-  const totalPercentSum = 0;
-
-  //   const totalPercentSum = matrix
-  //     .flatMap((row) => row.players)
-  //     .reduce((acc, player) => acc + (parseFloat(player.values) || 0), 0)
-  //     .toFixed(1);
-
-  const totalNormalizedSum = matrix
-    .flatMap((row) => row.values)
-    .reduce(
-      (acc, item) =>
-        acc + (isNaN(parseFloat(item.value)) ? 0 : parseFloat(item.value)),
-      0
-    );
-
-  const totalColumns = combinedData.length * 7;
+  const combinedChartOptions = {
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: `Players and skills summary %`,
+        font: {
+          size: 18,
+        },
+        padding: {
+          top: 20,
+          bottom: 30,
+        },
+      },
+      datalabels: {
+        display: true,
+        color: "black",
+        anchor: "end",
+        align: "end",
+        offset: 5,
+        formatter: (value) => `${value}%`,
+        font: {
+          weight: "bold",
+          size: 14,
+        },
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        titleColor: "white",
+        bodyColor: "white",
+        borderColor: "white",
+        borderWidth: 1,
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: "Players",
+          font: {
+            size: 16,
+          },
+          color: "#000000",
+        },
+        barPercentage: 0.9, // Adjust bar width relative to the category width (0.9 means 90% of the available width)
+        categoryPercentage: 1.0, // Adjust the space occupied by each category (1.0 means 100% of the category width)
+      },
+      y: {
+        title: {
+          display: true,
+          text: "Percentage",
+          font: {
+            size: 16,
+          },
+          color: "#000000",
+        },
+        ticks: {
+          callback: function (value) {
+            return value + "%";
+          },
+        },
+        beginAtZero: true,
+        suggestedMax: (context) => {
+          const maxValue = Math.max(
+            ...context.chart.data.datasets.flatMap((dataset) => dataset.data)
+          );
+          return maxValue + 5;
+        },
+      },
+    },
+  };
 
   return (
     <div className="container mx-auto mt-8 p-4">
-      <table className="min-w-full bg-white mb-8 border-collapse ">
-        <thead>
-          <tr className="bg-[#fbc02d]">
-            <th className="py-2 px-4 border skill-header">
-              {firstColumnLabel1}
-            </th>
-            {combinedData.map((row, index) => (
-              <th
-                key={`skill-header-${index}`}
-                colSpan={playersData.length}
-                className="py-2 px-4 border"
-              >
-                {row.skill}
-              </th>
-            ))}
-            <th
-              className="py-2 px-4 border bg-[#ce93d8]"
-              colSpan={totalColumns}
-            >
-              Total of Totals
-            </th>
-          </tr>
-          <tr>
-            <th className="py-2 px-4 border bg-[#ffff00]">
-              {firstColumnLabel2}
-            </th>
-            {combinedData.map((row, rowIndex) => (
-              <React.Fragment key={`empty-header-${rowIndex}`}>
-                {playersData.map((player, playerIndex) => (
-                  <th
-                    key={`empty-cell-${rowIndex}-${playerIndex}`}
-                    className="py-2 px-4 border bg-[#ffff00]"
-                  >
-                    {player.skill}
-                  </th>
-                ))}
-              </React.Fragment>
-            ))}
-            {combinedData.map((row, index) => {
-              const colors = [
-                "bg-[#fbc02d]",
-                " bg-[#ffff00]",
-                "bg-[#9ccc65]",
-                "bg-[#82b1ff]",
-              ];
-              const colorClass = colors[index % colors.length];
-              return (
-                <React.Fragment key={`skill-headers-${index}`}>
-                  <th
-                    colSpan={playersData.length}
-                    className={`py-2 px-4 border  ${colorClass}`}
-                  >
-                    {row.skill}
-                  </th>
-                  <th className="py-2 px-4 border">%</th>
-                  <th className="py-2 px-4 border">Normalized</th>
-                </React.Fragment>
-              );
-            })}
-            <th className="py-2 px-4 border bg-[#9c27b0]">Total of Totals</th>
-            <th className="py-2 px-4 border">%</th>
-            <th className="py-2 px-4 border">Normalized</th>
-          </tr>
-        </thead>
-        <tbody>
-          {matrix.map((row, rowIndex) => (
-            <tr key={`player-row-${rowIndex}`}>
-              {row.values.map((item, colIndex) => (
-                <td
-                  key={`player-cell-${rowIndex}-${colIndex}`}
-                  className="py-2 px-4 border"
-                >
-                  {rowIndex === 0 ? item.playerName : ""}
-                </td>
-              ))}
-              {row.values.map((cell, colIndex) => (
-                <td
-                  key={`cell-${rowIndex}-${colIndex}`}
-                  className="py-2 px-4 border"
-                >
-                  <input
-                    type="text"
-                    value={cell.value || ""}
-                    onChange={(e) =>
-                      onInputChange(rowIndex, colIndex, e.target.value)
-                    }
-                    className="w-full text-center"
-                  />
-                </td>
-              ))}
-              <td className="py-2 px-4 border">
-                {(row.total || 0).toFixed(2)}
-              </td>
-              <td
-                className={`py-2 px-4 border ${
-                  row.percent === highestPercent
-                    ? "font-bold text-red-500"
-                    : "text-red-500"
-                }`}
-              >
-                {(row.percent || 0).toFixed(2)}%
-              </td>
-              <td className="py-2 px-4 border">
-                {(row.normalized || 0).toFixed(2)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td className="py-2 px-4 border font-bold"></td>
-            {combinedData.flatMap((row) =>
-              playersData.map((_, index) => (
-                <td key={index} className="py-2 px-4 border font-bold"></td>
-              ))
-            )}
-            <td className="py-2 px-4 border font-bold">
-              {totalSum.toFixed(2)}
-            </td>
-            <td className="py-2 px-4 border font-bold">{totalPercentSum}%</td>
-            <td className="py-2 px-4 border font-bold">{totalNormalizedSum}</td>
-          </tr>
-        </tfoot>
-      </table>
-      <style jsx>{`
-        .skill-header {
-          width: 120px; /* Adjust this width as needed */
-        }
-        .skill-col {
-          width: 120px; /* Ensure this matches if you want consistent column width */
-        }
-      `}</style>
+      {skillsData1?.map((data) => {
+        return (
+          <MatrixChart
+            key={data.skill}
+            firstColumnLabel={"Player"}
+            skillName={data.skill}
+            updateCombinedData={updateCombinedData}
+          />
+        );
+      })}
+      <Bar data={chartData} options={combinedChartOptions} />
     </div>
   );
 };

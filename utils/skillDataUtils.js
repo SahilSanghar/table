@@ -11,31 +11,27 @@ const evaluateValue = (value) => {
 export const handleInputChange = (skillsData, rowIndex, colIndex, value) => {
   const updatedSkillsData = [...skillsData];
 
+  // Ensure diagonal values are set to 1
   if (rowIndex === colIndex) {
-    updatedSkillsData[rowIndex].values[colIndex] = "1"; // Ensure diagonal values are set to 1
+    updatedSkillsData[rowIndex].values[colIndex] = "1";
   } else {
     updatedSkillsData[rowIndex].values[colIndex] = value;
   }
 
   // Calculate the value below the diagonal
   const parsedValue = evaluateValue(value);
-  if (!isNaN(parsedValue) && parsedValue !== 0) {
-    updatedSkillsData[colIndex].values[rowIndex] = roundToTwoDecimals(
-      1 / parsedValue
-    );
-  } else {
-    updatedSkillsData[colIndex].values[rowIndex] = "";
+  if (rowIndex > colIndex) {
+    updatedSkillsData[colIndex].values[rowIndex] = parsedValue
+      ? roundToTwoDecimals(1 / parsedValue)
+      : "";
   }
 
   // Recalculate totals
   updatedSkillsData.forEach((row) => {
-    row.total =
-      1 +
-      row.values.reduce(
-        (sum, val) =>
-          sum + (isNaN(evaluateValue(val)) ? 0 : evaluateValue(val)),
-        0
-      );
+    row.total = row.values.reduce(
+      (sum, val) => sum + (isNaN(evaluateValue(val)) ? 0 : evaluateValue(val)),
+      0
+    );
   });
 
   const totalSum = updatedSkillsData.reduce((acc, row) => acc + row.total, 0);
