@@ -1,5 +1,28 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { Bar } from "react-chartjs-2";
+
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
+import { playerData } from "@/data/skill";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartDataLabels
+);
 
 const MatrixChart = ({ firstColumnLabel, skillName, updateCombinedData }) => {
   const [skillsData, setSkillsData] = useState([
@@ -111,6 +134,99 @@ const MatrixChart = ({ firstColumnLabel, skillName, updateCombinedData }) => {
     return acc + (isNaN(row.normalized) ? 0 : row.normalized);
   }, 0);
 
+  // Chart data
+  const chartData = {
+    labels: skillsData.map((row) => row.skill),
+    datasets: [
+      {
+        // label: "Percentage",
+        data: skillsData.map((row) => row.percent),
+        backgroundColor: "#0277bd",
+        borderColor: "rgba(54, 162, 235, 1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: false, // Disable the legend popup
+      },
+      title: {
+        display: true,
+        text: `${firstColumnLabel} vs ${skillName} percent`,
+        font: {
+          size: 18,
+        },
+        padding: {
+          top: 20,
+          bottom: 30,
+        },
+      },
+      datalabels: {
+        display: true,
+        color: "black",
+        align: "end",
+        anchor: "end",
+        formatter: (value) => (value > 0 ? `${value}%` : ""),
+        font: {
+          weight: "bold",
+          size: 14,
+        },
+      },
+      tooltip: {
+        enabled: true, // Enable tooltips
+        callbacks: {
+          title: function (tooltipItems) {
+            // Return the skill name for the tooltip
+            return tooltipItems[0].label;
+          },
+          label: function (tooltipItem) {
+            const skillName = tooltipItem.label;
+            const percentage = tooltipItem.raw;
+            const color = tooltipItem.dataset.borderColor;
+            return [` %: ${percentage}`];
+          },
+        },
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        titleColor: "white",
+        bodyColor: "white",
+        borderColor: "white",
+        borderWidth: 1,
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: firstColumnLabel,
+          font: {
+            size: 16,
+          },
+          color: "#000000",
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: "Percentage",
+          font: {
+            size: 16,
+          },
+          color: "#000000",
+        },
+        ticks: {
+          callback: function (value) {
+            return value + "%";
+          },
+        },
+        beginAtZero: true,
+      },
+    },
+  };
+
   return (
     <div className="container mx-auto mt-8 p-4">
       <table className="min-w-full bg-white mb-8">
@@ -126,7 +242,7 @@ const MatrixChart = ({ firstColumnLabel, skillName, updateCombinedData }) => {
             {skillsData.map((row, colIndex) => (
               <th key={colIndex} className="py-2 px-4 border">
                 <input
-                  type="number"
+                  type="text"
                   value={row.skill}
                   onChange={(e) =>
                     handleSkillNameChange(colIndex, e.target.value)
@@ -220,6 +336,9 @@ const MatrixChart = ({ firstColumnLabel, skillName, updateCombinedData }) => {
           </tr>
         </tfoot>
       </table>
+      <div className="flex items-center justify-center h-[500px]">
+        <Bar data={chartData} options={chartOptions} />
+      </div>
     </div>
   );
 };
