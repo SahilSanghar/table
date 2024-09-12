@@ -12,6 +12,7 @@ import {
   Legend,
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import { playerData } from "@/data/skill";
 
 ChartJS.register(
   CategoryScale,
@@ -23,32 +24,41 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
-  const [skillsData, setSkillsData] = useState(initialSkillsData);
+const MatrixChart = ({ firstColumnLabel, skillName, updateCombinedData }) => {
+  const [skillsData, setSkillsData] = useState([
+    {
+      skill: "Javier",
+      values: ["", "", "", ""],
+      total: 0,
+      percent: 0,
+      normalized: 0,
+    },
+    {
+      skill: "Alex",
+      values: ["", "", "", ""],
+      total: 0,
+      percent: 0,
+      normalized: 0,
+    },
+    {
+      skill: "Cody",
+      values: ["", "", "", ""],
+      total: 0,
+      percent: 0,
+      normalized: 0,
+    },
+    {
+      skill: "Dan",
+      values: ["", "", "", ""],
+      total: 0,
+      percent: 0,
+      normalized: 0,
+    },
+  ]);
 
   const handleSkillNameChange = (index, newName) => {
     const updatedSkillsData = [...skillsData];
     updatedSkillsData[index].skill = newName;
-    setSkillsData(updatedSkillsData);
-  };
-
-  const addSkill = (skillName) => {
-    const newSkill = {
-      skill: skillName,
-      values: Array(skillsData.length + 1).fill(""),
-      total: 0,
-      percent: 0,
-      normalize: 0,
-    };
-
-    const updatedSkillsData = [...skillsData, newSkill];
-
-    updatedSkillsData.forEach((row, index) => {
-      if (index < updatedSkillsData.length - 1) {
-        row.values.push("");
-      }
-    });
-
     setSkillsData(updatedSkillsData);
   };
 
@@ -112,6 +122,10 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
     setSkillsData(updatedSkillsData);
   };
 
+  useEffect(() => {
+    updateCombinedData(skillName, skillsData);
+  }, [skillsData]);
+
   // Find the highest percentage value
   const highestPercent = Math.max(...skillsData.map((row) => row.percent), 0);
   const totalSum = skillsData.reduce((acc, row) => acc + row.total, 0);
@@ -138,21 +152,24 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
     responsive: true,
     plugins: {
       legend: {
-        display: false,
+        display: false, // Disable the legend popup
       },
       title: {
         display: true,
-        text: `${firstColumnLabel} vs Weight percentage`,
+        text: `${firstColumnLabel} vs ${skillName} percent`,
         font: {
           size: 18,
+        },
+        padding: {
+          top: 20,
+          bottom: 30,
         },
       },
       datalabels: {
         display: true,
         color: "black",
-        anchor: "end",
         align: "end",
-        offset: 5,
+        anchor: "end",
         formatter: (value) => (value > 0 ? `${value}%` : ""),
         font: {
           weight: "bold",
@@ -160,9 +177,10 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
         },
       },
       tooltip: {
-        enabled: true,
+        enabled: true, // Enable tooltips
         callbacks: {
           title: function (tooltipItems) {
+            // Return the skill name for the tooltip
             return tooltipItems[0].label;
           },
           label: function (tooltipItem) {
@@ -211,16 +229,14 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
 
   return (
     <div className="container mx-auto mt-8 p-4">
-      <div className="mb-4">
-        <button
-          onClick={() => addSkill(`NewCol`)}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Add +
-        </button>
-      </div>
       <table className="min-w-full bg-white mb-8">
         <thead>
+          <tr>
+            <th className="py-2 px-4 border">{"Skills"}</th>
+            <th className="py-2 px-4 border" colSpan={skillsData.length}>
+              {skillName}
+            </th>
+          </tr>
           <tr>
             <th className="py-2 px-4 border">{firstColumnLabel}</th>
             {skillsData.map((row, colIndex) => (
@@ -320,9 +336,11 @@ const Chart = ({ skillsData: initialSkillsData = [], firstColumnLabel }) => {
           </tr>
         </tfoot>
       </table>
-      <Bar data={chartData} options={chartOptions} />
+      <div className="flex items-center justify-center h-[500px]">
+        <Bar data={chartData} options={chartOptions} />
+      </div>
     </div>
   );
 };
 
-export default Chart;
+export default MatrixChart;
