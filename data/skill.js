@@ -13,20 +13,20 @@ export const _skillsData = [
     percent: 0,
     normalized: 0,
   },
-  {
-    skill: "Hitting",
-    values: ["", "", "", ""],
-    total: 0,
-    percent: 0,
-    normalized: 0,
-  },
-  {
-    skill: "Dancing",
-    values: ["", "", "", ""],
-    total: 0,
-    percent: 0,
-    normalized: 0,
-  },
+  // {
+  //   skill: "Hitting",
+  //   values: ["", "", "", ""],
+  //   total: 0,
+  //   percent: 0,
+  //   normalized: 0,
+  // },
+  // {
+  //   skill: "Dancing",
+  //   values: ["", "", "", ""],
+  //   total: 0,
+  //   percent: 0,
+  //   normalized: 0,
+  // },
 ];
 
 export const playerData = [
@@ -44,18 +44,18 @@ export const playerData = [
     percent: 0,
     normalized: 0,
   },
-  {
-    skill: "Cody",
-    values: ["", "", "", ""],
-    total: 0,
-    percent: 0,
-    normalized: 0,
-  },
-  {
-    skill: "Dan",
-    values: ["", "", "", ""],
-    total: 0,
-    percent: 0,
-    normalized: 0,
-  },
+  // {
+  //   skill: "Cody",
+  //   values: ["", "", "", ""],
+  //   total: 0,
+  //   percent: 0,
+  //   normalized: 0,
+  // },
+  // {
+  //   skill: "Dan",
+  //   values: ["", "", "", ""],
+  //   total: 0,
+  //   percent: 0,
+  //   normalized: 0,
+  // },
 ];
