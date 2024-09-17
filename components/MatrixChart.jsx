@@ -40,20 +40,20 @@ const MatrixChart = ({ firstColumnLabel, skillName, updateCombinedData }) => {
       percent: 0,
       normalized: 0,
     },
-    {
-      skill: "Cody",
-      values: ["", "", "", ""],
-      total: 0,
-      percent: 0,
-      normalized: 0,
-    },
-    {
-      skill: "Dan",
-      values: ["", "", "", ""],
-      total: 0,
-      percent: 0,
-      normalized: 0,
-    },
+    // {
+    //   skill: "Cody",
+    //   values: ["", "", "", ""],
+    //   total: 0,
+    //   percent: 0,
+    //   normalized: 0,
+    // },
+    // {
+    //   skill: "Dan",
+    //   values: ["", "", "", ""],
+    //   total: 0,
+    //   percent: 0,
+    //   normalized: 0,
+    // },
   ]);
 
   const handleSkillNameChange = (index, newName) => {
